@@ -1,0 +1,8 @@
+{"systeminfo":"x","model":{"type":"large-v3-turbo"},"params":{"model":"m.bin","language":"auto"},
+ "result":{"language":"pt"},
+ "transcription":[
+  {"timestamps":{"from":"00:00:00,000","to":"00:00:03,500"},"offsets":{"from":0,"to":3500},"text":" Olá pessoal,"},
+  {"timestamps":{"from":"00:00:03,500","to":"00:00:07,000"},"offsets":{"from":3500,"to":7000},"text":" tudo bem?"},
+  {"timestamps":{"from":"00:01:10,000","to":"00:01:12,000"},"offsets":{"from":70000,"to":72000},"text":"   "},
+  {"timestamps":{"from":"00:01:12,000","to":"00:01:15,000"},"offsets":{"from":72000,"to":75000},"text":" Segundo bloco."}
+ ]}
