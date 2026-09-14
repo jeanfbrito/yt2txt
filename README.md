@@ -51,7 +51,7 @@ yt2frame PcpkBzcRdSU 0:45 3:20 4:55                     # see what was on screen
 ## Install
 
 ```sh
-git clone <repo-url> ~/Github/yt2txt
+git clone https://github.com/jeanfbrito/yt2txt.git ~/Github/yt2txt
 cd ~/Github/yt2txt
 ./install.sh
 ```
