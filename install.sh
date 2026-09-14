@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Install yt2txt + yt2frame and link the Claude Code skill. Safe to re-run.
+# Install yt2txt + yt2frame and link the agent skill into Claude Code, Codex and Grok Build. Safe to re-run.
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_SRC="$HERE/skill/yt-transcript"
-SKILL_DST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}/yt-transcript"
+# Skill hosts: Claude Code always; Codex and Grok Build when their config dir exists.
+SKILL_DIRS=("${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}")
+[ -d "$HOME/.codex" ] && SKILL_DIRS+=("$HOME/.codex/skills")
+[ -d "$HOME/.grok" ]  && SKILL_DIRS+=("$HOME/.grok/skills")
 
 need() { command -v "$1" >/dev/null 2>&1; }
 
@@ -22,13 +25,15 @@ fi
 echo "installing yt2txt + yt2frame with uv"
 uv tool install "$HERE" --force --reinstall --quiet
 
-mkdir -p "$(dirname "$SKILL_DST")"
-if [ -L "$SKILL_DST" ] || [ -e "$SKILL_DST" ]; then rm -rf "$SKILL_DST"; fi
-ln -s "$SKILL_SRC" "$SKILL_DST"
-
 echo
 echo "ok  $(command -v yt2txt)   ($(yt2txt --version))"
 echo "ok  $(command -v yt2frame)"
-echo "ok  skill: $SKILL_DST -> $SKILL_SRC"
+for dir in "${SKILL_DIRS[@]}"; do
+  dst="$dir/yt-transcript"
+  mkdir -p "$dir"
+  if [ -L "$dst" ] || [ -e "$dst" ]; then rm -rf "$dst"; fi
+  ln -s "$SKILL_SRC" "$dst"
+  echo "ok  skill: $dst -> $SKILL_SRC"
+done
 echo
 echo "try: yt2txt https://youtu.be/jNQXAC9IVRw --format txt"

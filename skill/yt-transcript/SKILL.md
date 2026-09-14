@@ -8,8 +8,12 @@ description: Turns a YouTube video into a transcript (YouTube captions when they
 Turn a YouTube link into a source you can actually read and cite: run `yt2txt`, which
 fetches the captions with `yt-dlp` or, when the video has none, downloads the audio and
 transcribes it locally with whisper.cpp. Either way you get a clean timestamped Markdown
-file; index it and answer from the indexed text. The raw transcript never has to enter
-the main context; you search it.
+file; search it and answer from the text with timestamps. The raw transcript does not have
+to enter the main context.
+
+Works the same from Claude Code, Codex and Grok Build: everything below is shell commands
+plus your host's file-reading and image-viewing tools. Where a step names an optional tool
+(a search index, a memory store, background subagents), use your host's equivalent or skip it.
 
 ## When to use
 
@@ -42,32 +46,35 @@ user when that path is taken so the wait is expected.
    - Cached videos are reused; pass `--force` to refetch.
    - Output line per video: `OK <path> words=N track=en/auto duration=S`. Anything
      else is a failure to report verbatim.
-   - In Orchestrator mode with 2+ links, dispatch one haiku `watcher` to run the
-     command and return the OK lines. One link: run it directly.
+   - Several links: pass them all to one `yt2txt` call. If your host offers cheap
+     background subagents, one of them can run the command and return the OK lines.
    - Need the text in context instead of a file? `yt2txt <url> --format txt` (or
      `json`) prints it to stdout; only do this for short videos.
 
    - **See what was on screen.** When the transcript mentions something visual ("as you
      can see here", a slide, a demo, a diagram), grab frames at those stamps without
      downloading the video with the sister command: `yt2frame <url> 2:30 4:10 --out <dir>`
-     prints `FRAME <path> t=150 1280x720` per frame in well under a second each; then Read
-     the JPEGs. Batch every timestamp you need into one call. A black frame means a fade or
+     prints `FRAME <path> t=150 1280x720` per frame in well under a second each; then open
+     the JPEGs with your host's image-viewing / file-reading tool. Batch every timestamp
+     you need into one call. A black frame means a fade or
      cut at that instant; nudge the time by a second or two.
 
-2. **Index.** Call the context-mode `ctx_index` tool on each written file (or the
-   `--out` directory) so `ctx_search` can retrieve passages. Prefer the project copy
-   when it exists so the knowledge is project-scoped.
+2. **Make it searchable.** If a search index is available (for example context-mode's
+   `ctx_index` / `ctx_search`), index each written file or the `--out` directory, preferring
+   the project copy so the knowledge is project-scoped. Without one, `grep -n` the
+   Markdown for the user's terms, or read `yt2txt <url> --format txt` when the video is
+   short.
 
-3. **Answer from the index, not from memory.** Use `ctx_search` with the user's
-   question plus 3–5 sub-questions; quote with the `[mm:ss]` stamps the file carries.
-   Read the file in full only when the user asks for a full summary and it is short
-   (under ~3,000 words), otherwise summarize from searched passages.
+3. **Answer from the transcript, not from memory.** Search with the user's question plus
+   3–5 sub-questions; quote with the `[mm:ss]` stamps the file carries. Read the file in
+   full only when the user asks for a full summary and it is short (under ~3,000 words),
+   otherwise summarize from the passages you found.
 
 4. **Record what is durable (optional).** When the video changes how the project
    should work (a technique, a parameter, a pitfall), add it where the project keeps
    references (`docs/references/…`, a skill's `references/sources.md`) with the URL,
-   title, channel, and a two-line takeaway. Offer a mastermind `mm_write` entry only
-   when the user asks to remember it.
+   title, channel, and a two-line takeaway. Write to a persistent memory store (if your
+   host has one) only when the user asks to remember it.
 
 ## File format
 
@@ -106,3 +113,7 @@ output does. Do not "fix" the file, quote it as is and paraphrase in your answer
   `.localdev/` (uncommitted) unless the user decides otherwise.
 - `yt2txt --help` and `yt2frame --help` list every flag. This skill lives in the tool's own
   repo (`~/Github/yt2txt/skill/yt-transcript`); the README there documents the CLIs.
+- Host notes: `install.sh` links this folder into `~/.claude/skills`, `~/.codex/skills` and
+  `~/.grok/skills` when those hosts are present. Grok Build also scans `~/.claude/skills`
+  on its own; Codex and Grok both read a project's `AGENTS.md`, so a one-line pointer
+  there ("YouTube links: use the yt-transcript skill / `yt2txt`") helps discovery.

@@ -13,4 +13,4 @@ lint:
 
 uninstall:
 	-uv tool uninstall yt2txt
-	-rm -f $${CLAUDE_SKILLS_DIR:-$$HOME/.claude/skills}/yt-transcript
+	-rm -f $${CLAUDE_SKILLS_DIR:-$$HOME/.claude/skills}/yt-transcript $$HOME/.codex/skills/yt-transcript $$HOME/.grok/skills/yt-transcript

@@ -20,7 +20,7 @@ yt2frame PcpkBzcRdSU 0:45 3:20 4:55                     # see what was on screen
 - **Frames without the video.** `yt2frame` resolves a direct stream URL and lets ffmpeg seek into
   it with HTTP range requests, so a 720p JPEG takes well under a second.
 - **Agent-ready.** Clean stdout, progress on stderr, one-line results, meaningful exit codes, and
-  a Claude Code skill in this repo that teaches the transcript-then-frames loop.
+  an agent skill in this repo (Claude Code, Codex, Grok Build) that teaches the transcript-then-frames loop.
 
 ## Contents
 
@@ -35,7 +35,7 @@ yt2frame PcpkBzcRdSU 0:45 3:20 4:55                     # see what was on screen
 - [Models and machine load](#models-and-machine-load)
 - [Cookies and YouTube's bot check](#cookies-and-youtubes-bot-check)
 - [Cache layout](#cache-layout)
-- [Claude Code skill](#claude-code-skill)
+- [Agent skill (Claude Code, Codex, Grok Build)](#agent-skill-claude-code-codex-grok-build)
 - [Troubleshooting](#troubleshooting)
 - [Development](#development)
 - [Limitations and non-goals](#limitations-and-non-goals)
@@ -60,7 +60,7 @@ cd ~/Github/yt2txt
 
 1. installs missing Homebrew dependencies (`yt-dlp`, `ffmpeg`, `whisper-cpp`),
 2. installs the `yt2txt` and `yt2frame` commands with `uv tool install`,
-3. links `skill/yt-transcript` into `~/.claude/skills/` for Claude Code.
+3. links `skill/yt-transcript` into the skill folders of Claude Code, Codex and Grok Build (whichever are installed).
 
 Re-run it after pulling changes. `make uninstall` removes the uv tool and the skill link.
 
@@ -305,13 +305,27 @@ Keep `yt-dlp` current (`brew upgrade yt-dlp`). Most breakage is an outdated extr
 Cache hits print `cached=1` on the `OK` / `FRAME` line. `--force` refetches. Delete files freely;
 everything is reproducible.
 
-## Claude Code skill
+## Agent skill (Claude Code, Codex, Grok Build)
 
-`skill/yt-transcript/SKILL.md` is a Claude Code skill that triggers on pasted YouTube links and
-requests like "what does this video say" or "transcribe this". It tells the agent to run
-`yt2txt --save --out <project>/.localdev/reference/transcripts`, index the file with
-context-mode, answer from search with `[mm:ss]` quotes, and use `yt2frame` for moments that
-refer to something on screen. `install.sh` links it into `~/.claude/skills/yt-transcript`.
+`skill/yt-transcript/SKILL.md` is an agent skill in the shared SKILL.md format that Claude
+Code, OpenAI Codex and xAI Grok Build all load. It triggers on pasted YouTube links and
+requests like "what does this video say" or "transcribe this", and tells the agent to run
+`yt2txt --save --out <project>/.localdev/reference/transcripts`, search the Markdown (with a
+context index when the host has one, otherwise grep), answer with `[mm:ss]` quotes, and use
+`yt2frame` for moments that refer to something on screen. Nothing in it depends on a
+particular host's tools.
+
+`install.sh` links the folder into every host present on the machine:
+
+| Host | Link |
+|---|---|
+| Claude Code | `~/.claude/skills/yt-transcript` (always) |
+| Codex | `~/.codex/skills/yt-transcript` (when `~/.codex` exists) |
+| Grok Build | `~/.grok/skills/yt-transcript` (when `~/.grok` exists; Grok also scans `~/.claude/skills`) |
+
+Codex and Grok Build also read a project's `AGENTS.md`; a one-line pointer there such as
+"YouTube links: use the `yt-transcript` skill (`yt2txt`, `yt2frame`)" helps discovery in
+repos where you use them often.
 
 ## Troubleshooting
 
